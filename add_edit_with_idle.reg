@@ -1,0 +1,6 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\Python.File\shell\Edit with IDLE]
+
+[HKEY_CLASSES_ROOT\Python.File\shell\Edit with IDLE\command]
+@="\"C:\\Users\\Pavithran\\AppData\\Local\\Programs\\Python\\Python311\\pythonw.exe\" \"C:\\Users\\Pavithran\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\idlelib\\idle.pyw\" \"%1\""
