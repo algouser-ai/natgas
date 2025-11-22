@@ -31,39 +31,50 @@ supertrend_window = 10
 supertrend_atr_window = 10
 supertrend_multiplier = 3
 
-print(f"{output_path  = }")
+#print(f"{output_path  = }")
 with open(output_path + 'access.txt') as f:
                 access_token = f.read()
 
 fyers = fyersModel.FyersModel(client_id = fyers_client_id, is_async=False, token = access_token, log_path="")
 fyers_response = fyers.get_profile()
-print(f"{fyers_response = }")
+#print(f"{fyers_response = }")
 
-expiry = time.strftime("%y%b").upper()
-next_expiry = (date.today() + relativedelta(months=1)).strftime("%y%b").upper()
+current_date = dt.date.today()
+current_date_str = "22-12-2025" #current_date.strftime("%d-%m-%Y")
+
+expiry = "25OCT" #time.strftime("%y%b").upper()
+next_expiry = (current_date + relativedelta(months=1)).strftime("%y%b").upper()
 
 symbol = f"MCX:NATGASMINI{expiry}FUT"
 
 try:
-    data = {"symbol": f"MCX:NATGASMINI{expiry}FUT","strikecount":1,"timestamp": ""}
+    data = {"symbol": f"{symbol}","strikecount":1,"timestamp": ""}
     fyers_response = fyers.optionchain(data=data)
-    print(f"{expiry = } {fyers_response['message']}")
-    date_str = fyers_response['data']['expiryData'][0]['date']
-    dt = datetime.strptime(date_str, "%d-%m-%Y")
-    formatted_expiry = dt.strftime("%y%b")
-    if 
+    print(f"{current_date_str = }  {expiry = } {fyers_response['message']}")
+    option_chain_expiry = fyers_response['data']['expiryData'][0]['date']
+    monthly_expiry_dt = datetime.strptime(option_chain_expiry, "%d-%m-%Y").strftime("%d%m%y")
+    option_chain_expiry_str = datetime.strptime(option_chain_expiry, "%d-%m-%Y").strftime("%y%b").upper()
+ 
+    print(f"{monthly_expiry_dt = } ")
+    print(f"{option_chain_expiry = } {current_date_str = } ",option_chain_expiry == current_date_str)
+    if option_chain_expiry == current_date_str:
+        symbol = f"MCX:NATGASMINI{next_expiry}FUT"
+        print("both option_chain_expiry and current_date_str are same,{symbol = }")
+        raise StopIteration   # exit the loop and also exit the try block
+    else:
+        symbol = f"MCX:NATGASMINI{option_chain_expiry_str}FUT"
+        print(f"Else part ,{symbol = }")
+        #data = {"symbol": f"{symbol}","strikecount":1,"timestamp": ""}
+        #fyers_response = fyers.optionchain(data=data)
+              
 except Exception as e:
-    print(f"Moving to next_expiry")
-    data = {"symbol": f"MCX:NATGASMINI{next_expiry}FUT","strikecount":1,"timestamp": ""}
-    fyers_response = fyers.optionchain(data=data)
-    print(f"{next_expiry = } {fyers_response['message']}")
-    print(fyers_response['data']['expiryData'][0])
+    print(f"Moving to next_expiry,error :  {e}")
+    symbol = f"MCX:NATGASMINI{next_expiry}FUT"
+    #data = {"symbol": f"{symbol}","strikecount":1,"timestamp": ""}
+    #fyers_response = fyers.optionchain(data=data)
+    #print(f"{next_expiry = } {fyers_response['message']}")
+    #print(fyers_response['data']['expiryData'][0])
     
-
-now = datetime.now() + timedelta (days = 9)
-next_month_date = now #+ relativedelta(months=1)
-current_month = next_month_date.strftime("%y%b").upper()
-
 
 total_positions = 1 #total number of positions
 
@@ -217,8 +228,9 @@ if history_df is not None:
     ema = round(float(history_df[f'ema_{ema_period}'].iloc[-1]),2)
     atr = round(float(history_df['atr'].iloc[-1]),2)
     st_value = round(float(history_df['supertrend'].iloc[-1]),2)
-    
-    print(f" {symbol = } {history_df.tail(15) = }\n{curr_close = } {ema = } {atr = } {st_value = }")
+    current_candle_date = history_df['date'].iloc[-1]
+
+    print(f" {symbol = } {history_df.tail(15) = }\n {current_candle_date = } {curr_close = } {ema = } {atr = } {st_value = }")
 
     history_df.to_csv("history_df.csv",index= False)
 
@@ -240,7 +252,6 @@ if history_df is not None:
     '''if :
         place_order(symbol, curr_close, open_qty ,side)'''
     
-
 
 
 
