@@ -33,7 +33,8 @@ atr_window = 10
 supertrend_window = 10
 supertrend_atr_window = 10
 supertrend_multiplier = 3
-partials_profits = True 
+partials_profits = True
+place_live_orders = False
 
 order_status_dict = {
     1: "Cancelled",
@@ -191,32 +192,33 @@ def place_order(trading_symbol, ltp, qty ,side):
     }
 
     log(f"{order_data = }")
-    
-    try:
-        order_response = fyers.place_order(data = order_data)
-        
-        if order_response['s'].lower() == "ok" :
-            orderId = order_response['id']
 
-            #getting status of the order
-            data = {"id" : orderId}
-            order_response = fyers.orderbook(data=data)
-            orderBook = order_response['orderBook'][0]
-            log(f"{orderBook = }")
-            order_status = orderBook['status']
-            log(f"{order_status = }")
-
-            if order_status_dict[str(order_status)].lower() == 'pending' :
-                time.sleep(15)
-                modify_orders(orderId ,limitPrice, qty)
-                log(f"order rejected : {order_status}")
-        else :
-            log(f"order rejected : {order_response['message']}")
+    if place_live_orders :
+        try:
+            order_response = fyers.place_order(data = order_data)
             
-    except Exception as e:
-        log(f"Unable to place order, {e}")
+            if order_response['s'].lower() == "ok" :
+                orderId = order_response['id']
+
+                #getting status of the order
+                data = {"id" : orderId}
+                order_response = fyers.orderbook(data=data)
+                orderBook = order_response['orderBook'][0]
+                log(f"{orderBook = }")
+                order_status = orderBook['status']
+                log(f"{order_status = }")
+
+                if order_status_dict[str(order_status)].lower() == 'pending' :
+                    time.sleep(15)
+                    modify_orders(orderId ,limitPrice, qty)
+                    log(f"order rejected : {order_status}")
+            else :
+                log(f"order rejected : {order_response['message']}")
+                
+        except Exception as e:
+            log(f"Unable to place order, {e}")
         
-    return order_response
+    #return order_response
 
 # ================ Check Current Position ===============
 
